@@ -1,32 +1,35 @@
-from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_chroma import Chroma
-from langchain_core.prompts import ChatPromptTemplate
+from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_google_genai import GoogleGenerativeAI
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.runnables import RunnablePassthrough
 from dotenv import load_dotenv
 
-#Load embedding model
-embedding_model = HuggingFaceEmbeddings(model_name = 'sentence-transformers/all-MiniLM-L6-v2')
+#Fromat chunks into context for LLM
+def create_context(results):
+    return '\n\n'.join(x.page_content for x in results)
 
-#Load stored vector DB
+#Initialize sentence transformer model
+model = HuggingFaceEmbeddings(model_name = 'sentence-transformers/all-MiniLM-L6-v2')
+
+#Load vector DB
 vectorbase = Chroma(
     persist_directory='./chroma_db',
-    embedding_function=embedding_model
+    embedding_function= model
 )
 
-#LLM model initialization
+#Create a retriever object which returns top 5 results for a query
+retriever = vectorbase.as_retriever(search_kwargs = {'k' : 5})
+
+#Load API and initialize the model
 load_dotenv()
 llm = GoogleGenerativeAI(
-    model = 'gemini-3.6-flash',
+    model='gemini-3.6-flash'
 )
 
-#Retrieve top 5 results for a query
-retriever = vectorbase.as_retriever(search_kwargs = {'k' : 5})
-query = input('Enter query: ')
-results = retriever.invoke(query)
-
-#Convert the top 5 results into context and build the prompt
+#Create prompt template
 prompt = ChatPromptTemplate.from_template(
-    """
+        """
 Use only the information provided in the retrieved passages.
 Answer the question clearly and concisely.
 Cite the page or page range where the information came from.
@@ -42,12 +45,20 @@ Question:
 {question}
     """
 )
-context = '\n\n'.join(x.page_content for x in results)
-txt_prompt = prompt.invoke({
-    'context' : context,
-    'question' : query
-})
 
-#Generate response
-response = llm.invoke(txt_prompt)
+#Create langchain chain
+rag_chain = (
+    {
+        'context' : retriever | create_context,
+        'question' : RunnablePassthrough()
+    }
+    | prompt
+    | llm
+)
+
+#Input query
+query = input('Enter a query: ')
+
+#Invoke RAG chain and print repsonse
+response = rag_chain.invoke(query)
 print(response)
