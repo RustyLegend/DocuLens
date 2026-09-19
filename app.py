@@ -31,9 +31,11 @@ if uploaded_file is not None:
 
     st.write('No.of chunks: ', vector_base._collection.count())
 
-    query = st.text_input('Ask a question about your document: ')
-
-    if query:
+    with st.form("question_form"):
+        query = st.text_input("Ask a question about your document")
+        submitted = st.form_submit_button("Ask Question")
+    
+    if submitted and query:
         retriever = vector_base.as_retriever(search_kwargs = {'k' : 5})
         results = retriever.invoke(query)
         context = create_context(results)
@@ -67,11 +69,13 @@ if uploaded_file is not None:
 
         response = llm.invoke(message)
 
-        st.write('##Answer')
-
+        st.write('### Answer')
         st.write(response)
 
-        #st.write('Retrieved chunks: ')
-        #for chunk in results:
-        #    st.write(chunk.metadata['page'])
-        #    st.write(chunk.page_content)
+        st.write('### Sources')
+        for chunk in results:
+
+            page_num = chunk.metadata['page']
+
+            with st.expander(f'Page: {page_num}'):
+                st.write(chunk.page_content)
