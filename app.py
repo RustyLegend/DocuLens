@@ -10,7 +10,7 @@ def save_uploaded_file(uploaded_file):
 
     return temp_file.name
 
-st.title("Document Q&A")
+st.title("DocuLens")
 
 uploaded_file = st.file_uploader(
     "Upload a PDF",
