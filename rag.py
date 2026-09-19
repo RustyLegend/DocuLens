@@ -28,7 +28,13 @@ llm = GoogleGenerativeAI(
 )
 
 def answer_rag(vector_base, query):
-    retriever = vector_base.as_retriever(search_kwargs = {'k' : 5})
+    retriever = vector_base.as_retriever(
+        search_type = 'mmr',
+        search_kwargs = {
+            'k' : 5 ,
+            'fetch_k' : 20
+        }
+    )
     results = retriever.invoke(query)
     context = create_context(results)
     
