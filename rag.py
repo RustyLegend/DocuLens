@@ -56,7 +56,7 @@ Question:
 
 load_dotenv()
 llm = GoogleGenerativeAI(
-    model = 'gemini-3.6-flash'
+    model = 'gemini-3.8-flash'
 )
 
 def answer_rag(vector_base, query, chat_history):
