@@ -13,8 +13,8 @@ st.set_page_config(
 import os
 from dotenv import load_dotenv
 load_dotenv()
-if not os.getenv('GEMINI_API_KEY'):
-    st.error("Google API key is not configured.")
+if not os.getenv('GROQ_API_KEY'):
+    st.error("Groq API key is not configured.")
     st.stop()
 
 #Get the uploaded file as temp file from streamlit

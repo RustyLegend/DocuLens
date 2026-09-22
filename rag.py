@@ -1,4 +1,4 @@
-from langchain_google_genai import GoogleGenerativeAI
+from langchain_groq import ChatGroq
 from langchain_core.prompts import ChatPromptTemplate
 from dotenv import load_dotenv
 
@@ -35,7 +35,7 @@ def rewrite_query(query, chat_history):
 
     response = llm.invoke(prompt)
 
-    return response
+    return response.content
 
 prompt = ChatPromptTemplate.from_template(
         """
@@ -55,8 +55,8 @@ Question:
 )
 
 load_dotenv()
-llm = GoogleGenerativeAI(
-    model = 'gemini-3.8-flash'
+llm = ChatGroq(
+    model = 'openai/gpt-oss-120b'
 )
 
 def answer_rag(vector_base, query, chat_history):
@@ -80,4 +80,4 @@ def answer_rag(vector_base, query, chat_history):
 
     response = llm.invoke(message)
 
-    return response, results
+    return response.content, results
